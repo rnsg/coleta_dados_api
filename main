@@ -1,0 +1,70 @@
+import requests # Biblioteca para realizar requisições HTTP (envio e recebimento de dados via internet).
+
+# Função para enviar um arquivo sem autenticação
+def enviar_arquivo():
+    # Define o caminho local do arquivo que será enviado
+    caminho = r"insira o caminho do documento"
+    try:
+        #Envia o arquivo para o serviço file.io usando uma requisição HTTP POST
+        requisicao = requests.post(
+            'https://www.file.io/', # URL do serviço para upload de arquivos
+            files={'file': open(caminho, 'rb')} # Lê o arquivo em modo binário (necessário para upload)
+        )
+        #Extrai a resposta da requisição no formato JSON
+        saida_requisicao = requisicao.json()
+
+        #Verifica se o upload foi bem-sucedido
+        if requisicao.status_code==200 and 'link' in saida_requisicao: #200 é o status padrão que indica que a operação foi bem sucedida no servidor, 400 é mal formada, 401 não autorizada (falta de autenticação), 500 erro interno no servidor
+            link_arquivo = saida_requisicao['link'] # Link para download do arquivo enviado
+            print("Arquivo enviado. Link para acesso:", link_arquivo)
+        else:
+            print("Erro no envio do arquivo:", saida_requisicao) # Mensagem de erro com detalhes
+    except Exception as erro: # Trata exceções como problemas de autenticação ou conexão
+        print("Ocorreu um erro:", erro)
+
+# Função para baixar um arquivo a partir de uma URL
+def enviar_arquivo_chave():
+    # Define o caminho local do arquivo e a chave de acesso
+    caminho = r"insira o caminho do documento"
+    chave_acesso = "insira sua chave de acesso"
+
+    try:
+    #Envia o arquivo para o serviço usando uma chave de autenticação no cabeçalho
+        requisicao = requests.post(
+            'https://www.file.io/',
+            files={'file': open(caminho,"rb")}, # Arquivo em modo binário
+            headers={'Authorization': chave_acesso} # Cabeçalho de autorização
+        )
+        # Extrai a resposta no formato JSON
+        saida_requisicao=requisicao.json()
+
+        # Verificar se o envio foi bem-sucedido
+        if requisicao.status_code == 200 and 'link' in saida_requisicao:
+            url = saida_requisicao['link'] # Link para download do arquivo enviado
+            print("Arquivo enviado com sucesso. Link para acesso:", url)
+        else:
+            print("Erro no envio do arquivo:", saida_requisicao) # Mensagem de erro com detalhes
+    except Exception as erro: # Trata exceções como problemas de autenticação ou conexão
+        print("Ocorreu um erro:", erro)
+
+# Função para baixar um arquivo a partir de uma URL
+def receber_arquivo(file_url):
+    try:
+        #Realiza uma requisição HTTP GET para baixar o arquivo da URL fornecida
+        requisicao = requests.get(file_url)
+
+        #Verifica se o download foi bem-sucedido
+        if requisicao.ok:
+            # Salva o conteúdo do arquivo baixado no disco local
+            with open('insira o nome do documento', 'wb') as file:
+                file.write(requisicao.content) # Grava o conteúdo do arquivo no modo binário
+            print("Arquivo baixado com sucesso.")
+        else:
+            print("Erro ao baixar arquivo:",requisicao.status_code)
+    except Exception as erro: # Trata exceções, como erros de conexão ou URL inválida
+        print("Ocorreu um erro:", erro)
+
+# Exemplos de uso:
+# enviar_arquivo()  # Chama a função para enviar o arquivo sem autenticação
+# enviar_arquivo_chave()  # Chama a função para enviar o arquivo com chave de acesso
+# receber_arquivo("https://link-do-arquivo-aqui")  # Baixa o arquivo de um link fornecido
